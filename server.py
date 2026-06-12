@@ -431,7 +431,30 @@ def force_unload():
 # Serve UI static files
 app.mount("/", StaticFiles(directory="docs", html=True), name="static")
 
+def try_start_ollama():
+    import urllib.request
+    import os
+    import subprocess
+    try:
+        # Check if Ollama service is already responding
+        urllib.request.urlopen("http://127.0.0.1:11434", timeout=1)
+        print("[System] Ollama service is already running.")
+    except Exception:
+        print("[System] Ollama service not responding. Attempting to auto-launch Ollama application...")
+        # Resolve the standard user path for the Ollama Windows tray app
+        ollama_app_path = os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama\ollama app.exe")
+        if os.path.exists(ollama_app_path):
+            try:
+                subprocess.Popen([ollama_app_path])
+                print("[System] Ollama application launched successfully.")
+            except Exception as e:
+                print(f"[Warning] Failed to start Ollama application: {e}")
+        else:
+            print("[Warning] Ollama installation not found at default location. Please ensure Ollama is running manually.")
+
 if __name__ == "__main__":
     import uvicorn
+    # Auto-start Ollama if it is shut down
+    try_start_ollama()
     # Launch uvicorn server at localhost:8000
     uvicorn.run(app, host="127.0.0.1", port=8000)
