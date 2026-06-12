@@ -1,0 +1,9 @@
+@echo off
+echo Starting local FastAPI Game Design Planner Server...
+start "" python server.py
+echo Waiting 3 seconds for backend server to initialize...
+timeout /t 3 /nobreak >nul
+echo Launching frontend hosted on GitHub Pages...
+start "" "https://RorriMaesu.github.io/gemma4-uefn-game-planner/"
+echo Done! Keep this terminal window open to keep the backend running.
+pause

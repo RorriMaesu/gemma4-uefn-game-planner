@@ -1,4 +1,5 @@
 // App State Control
+const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "" : "http://127.0.0.1:8000";
 let pollInterval = null;
 let lastLogsLength = 0;
 
@@ -60,7 +61,7 @@ function initActionHandlers() {
         btnStart.textContent = "Processing...";
         appendLog("[System] Initiating baseline game design...", "system");
 
-        fetch("/api/start", {
+        fetch(`${API_BASE}/api/start`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ concept: concept })
@@ -91,7 +92,7 @@ function initActionHandlers() {
         btnAbort.textContent = "Aborting...";
         appendLog("[System] Sending abort request to backend...", "system");
         
-        fetch("/api/abort", { method: "POST" })
+        fetch(`${API_BASE}/api/abort`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
             appendLog("[System] Abort request completed.", "success");
@@ -121,7 +122,7 @@ function initActionHandlers() {
     // Manual Unload VRAM
     btnUnload.addEventListener("click", () => {
         appendLog("[System] Triggering manual VRAM model unload...", "system");
-        fetch("/api/vram/unload", { method: "POST" })
+        fetch(`${API_BASE}/api/vram/unload`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
             appendLog("[System] Unload command complete.", "success");
@@ -136,7 +137,7 @@ function initActionHandlers() {
         
         appendLog(`[System] Toggling autopilot to: ${newState ? "Enabled" : "Paused"}`, "system");
         
-        fetch("/api/autopilot/toggle", {
+        fetch(`${API_BASE}/api/autopilot/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ enable: newState })
@@ -152,7 +153,7 @@ function initActionHandlers() {
 
     // Download compiled GDD
     btnDownload.addEventListener("click", () => {
-        fetch("/api/status")
+        fetch(`${API_BASE}/api/status`)
         .then(res => res.json())
         .then(data => {
             if (data.final_gdd) {
@@ -211,7 +212,7 @@ function initActionHandlers() {
 // 4. Status Polling
 function startStatusPolling() {
     pollInterval = setInterval(() => {
-        fetch("/api/status")
+        fetch(`${API_BASE}/api/status`)
         .then(res => res.json())
         .then(status => {
             updateUI(status);
@@ -431,7 +432,7 @@ function appendLog(line, type = "info") {
 
 // 8. Submit Refinement/Finalize input action
 function sendAction(actionVal, focusVal = "") {
-    fetch("/api/action", {
+    fetch(`${API_BASE}/api/action`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: actionVal, focus: focusVal })

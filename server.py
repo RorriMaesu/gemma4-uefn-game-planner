@@ -6,6 +6,7 @@ import traceback
 from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Add current workspace to path to import client
@@ -13,6 +14,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from planner import LocalLLMClient, load_prompt_file
 
 app = FastAPI(title="Game Design Planner API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Shared thread-safe state object
 class PlannerState:
@@ -420,7 +429,7 @@ def force_unload():
     raise HTTPException(status_code=400, detail="LLM Client not initialized")
 
 # Serve UI static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory="docs", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
