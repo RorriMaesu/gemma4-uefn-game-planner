@@ -221,8 +221,7 @@ function startStatusPolling() {
             if (warning) warning.remove();
             const launcherCard = document.getElementById("launcher-card");
             if (launcherCard) {
-                launcherCard.style.border = "1px solid rgba(59, 130, 246, 0.3)";
-                launcherCard.style.background = "rgba(59, 130, 246, 0.05)";
+                launcherCard.style.display = "none";
             }
             updateUI(status);
         })
@@ -232,6 +231,7 @@ function startStatusPolling() {
             // Show dynamic offline warning on launcher card
             const launcherCard = document.getElementById("launcher-card");
             if (launcherCard) {
+                launcherCard.style.display = "block";
                 launcherCard.style.border = "2px solid rgba(239, 68, 68, 0.6)";
                 launcherCard.style.background = "rgba(239, 68, 68, 0.08)";
                 let warning = document.getElementById("launcher-offline-warning");
