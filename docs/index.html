@@ -48,6 +48,18 @@
         <main class="grid-layout">
             <!-- Left Panel: Controls & Inputs -->
             <section class="left-section">
+                <!-- One-Click Launcher Download -->
+                <div class="card panel-card" id="launcher-card" style="border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.05);">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 8px;">⚡ One-Click Local Launcher</h2>
+                    <p class="card-desc" style="margin-bottom: 12px;">If you are visiting this dashboard on GitHub Pages, you need to run the local backend server to access your GPU and the Gemma model. Download this launcher to set up everything automatically.</p>
+                    <a href="launcher-installer.zip" download class="btn btn-primary" style="display: block; text-align: center; text-decoration: none; width: 100%; box-sizing: border-box; padding: 10px 16px; border-radius: 8px; font-weight: 500; background: linear-gradient(135deg, var(--accent-blue) 0%, #1d4ed8 100%);">
+                        📥 Download Setup Launcher (ZIP)
+                    </a>
+                    <p class="card-desc" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.85; line-height: 1.3;">
+                        <strong>Instructions:</strong> Extract the downloaded ZIP file, then double-click <code>launcher.bat</code>. It will install Ollama, Python, required libraries, and verify the Gemma model automatically.
+                    </p>
+                </div>
+
                 <!-- Concept Form -->
                 <div class="card panel-card" id="concept-card">
                     <h2>Core Game Concept</h2>
