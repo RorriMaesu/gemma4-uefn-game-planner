@@ -2,6 +2,7 @@
 const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "" : "http://127.0.0.1:8000";
 let pollInterval = null;
 let lastLogsLength = 0;
+let hasAttemptedAutoLaunch = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     initTabs();
@@ -219,6 +220,13 @@ function startStatusPolling() {
         })
         .catch(err => {
             console.error("Error polling state status: ", err);
+            // Auto-launch the local setup tool if the local server is offline
+            if (!hasAttemptedAutoLaunch && !sessionStorage.getItem("autoLaunched")) {
+                hasAttemptedAutoLaunch = true;
+                sessionStorage.setItem("autoLaunched", "true");
+                console.log("[System] Local server offline. Triggering custom protocol launcher...");
+                window.location.href = "ollama-planner://launch";
+            }
         });
     }, 450);
 }

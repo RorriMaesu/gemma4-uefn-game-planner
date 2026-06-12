@@ -13,15 +13,48 @@ Write-Host "     Gemma 4 UEFN Game Planner Setup Launcher     " -ForegroundColor
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Check & Install Ollama
-Write-Host "[1/5] Checking for Ollama..." -ForegroundColor Green
+# 1. Register Custom Protocol Handler (ollama-planner://)
+Write-Host "[1/6] Registering custom protocol handler (ollama-planner://)..." -ForegroundColor Green
+try {
+    $RegistryPath = "HKCU:\Software\Classes\ollama-planner"
+    if (-not (Test-Path $RegistryPath)) {
+        New-Item -Path $RegistryPath -Force | Out-Null
+    }
+    # Note: Default properties are set via the empty name ""
+    New-ItemProperty -Path $RegistryPath -Name "(Default)" -Value "URL:Ollama Game Planner Protocol" -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $RegistryPath -Name "URL Protocol" -Value "" -PropertyType String -Force | Out-Null
+
+    $CommandPath = "$RegistryPath\shell\open\command"
+    if (-not (Test-Path $CommandPath)) {
+        New-Item -Path $CommandPath -Force | Out-Null
+    }
+    $BatchPath = Join-Path $PSScriptRoot "launcher.bat"
+    # Execute batch file in its own directory
+    $EscapedCommand = "cmd.exe /c cd /d `"$PSScriptRoot`" && launcher.bat"
+    New-ItemProperty -Path $CommandPath -Name "(Default)" -Value $EscapedCommand -PropertyType String -Force | Out-Null
+    Write-Host "Registered protocol handler successfully." -ForegroundColor Green
+} catch {
+    Write-Warning "Failed to register custom protocol handler: $_"
+}
+
+# 2. Check & Install Ollama
+Write-Host ""
+Write-Host "[2/6] Checking for Ollama..." -ForegroundColor Green
 $OllamaPath = Get-Command ollama -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
 if (-not $OllamaPath) {
-    # Check default install location
-    $DefaultOllama = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
-    if (Test-Path $DefaultOllama) {
-        $OllamaPath = $DefaultOllama
-        Write-Host "Found Ollama at: $OllamaPath" -ForegroundColor Yellow
+    # Check common install locations dynamically
+    $CommonPaths = @(
+        "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe",
+        "$env:PROGRAMFILES\Ollama\ollama.exe",
+        "$env:SystemDrive\Users\$env:USERNAME\AppData\Local\Programs\Ollama\ollama.exe",
+        "C:\Users\Tesla\AppData\Local\Programs\Ollama\ollama.exe",
+        "C:\Program Files\Ollama\ollama.exe"
+    )
+    foreach ($Path in $CommonPaths) {
+        if (Test-Path $Path) {
+            $OllamaPath = $Path
+            break
+        }
     }
 }
 
@@ -40,7 +73,6 @@ if (-not $OllamaPath) {
     # Wait for path update or local detection
     $OllamaPath = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
     if (-not (Test-Path $OllamaPath)) {
-        # Retry locating
         Start-Sleep -Seconds 3
         if (-not (Test-Path $OllamaPath)) {
             Write-Warning "Failed to locate Ollama after installation. Please launch Ollama manually and restart this script."
@@ -50,12 +82,12 @@ if (-not $OllamaPath) {
     }
     Write-Host "Ollama installed successfully!" -ForegroundColor Green
 } else {
-    Write-Host "Ollama is already installed." -ForegroundColor Green
+    Write-Host "Ollama is already installed at: $OllamaPath" -ForegroundColor Green
 }
 
-# 2. Check & Set Up Python
+# 3. Check & Set Up Python
 Write-Host ""
-Write-Host "[2/5] Checking for Python..." -ForegroundColor Green
+Write-Host "[3/6] Checking for Python..." -ForegroundColor Green
 $SystemPython = Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
 
 if (Test-Path $PythonExe) {
@@ -84,7 +116,6 @@ if (Test-Path $PythonExe) {
     $PthFile = Join-Path $LocalPythonDir "python311._pth"
     if (Test-Path $PthFile) {
         $Content = Get-Content $PthFile
-        # Uncomment "import site"
         $UpdatedContent = $Content -replace '#import site', 'import site'
         Set-Content -Path $PthFile -Value $UpdatedContent
     }
@@ -101,9 +132,9 @@ if (Test-Path $PythonExe) {
     Write-Host "Portable Python configuration completed successfully!" -ForegroundColor Green
 }
 
-# 3. Install Requirements
+# 4. Install Requirements
 Write-Host ""
-Write-Host "[3/5] Installing required packages..." -ForegroundColor Green
+Write-Host "[4/6] Installing required packages..." -ForegroundColor Green
 if (Test-Path $RequirementsFile) {
     Start-Process -FilePath $PythonExe -ArgumentList "-m pip install -r `"$RequirementsFile`"" -NoNewWindow -Wait
     Write-Host "Packages checked/installed successfully." -ForegroundColor Green
@@ -111,17 +142,16 @@ if (Test-Path $RequirementsFile) {
     Write-Warning "requirements.txt was not found! Skipping library installations."
 }
 
-# 4. Pull Gemma Model
+# 5. Pull Gemma Model
 Write-Host ""
-Write-Host "[4/5] Pre-fetching Gemma model weights..." -ForegroundColor Green
+Write-Host "[5/6] Pre-fetching Gemma model weights..." -ForegroundColor Green
 Write-Host "Running 'ollama pull gemma4:latest' in the background..." -ForegroundColor Yellow
-Write-Host "If already pulled, this will verify the download instantly." -ForegroundColor Yellow
 Start-Process -FilePath "ollama" -ArgumentList "pull gemma4:latest" -NoNewWindow -Wait
 Write-Host "Model verification completed." -ForegroundColor Green
 
-# 5. Start Application Server
+# 6. Start Application Server
 Write-Host ""
-Write-Host "[5/5] Launching FastAPI local server..." -ForegroundColor Green
+Write-Host "[6/6] Launching FastAPI local server..." -ForegroundColor Green
 Write-Host "Opening Game Design Planner in your default browser..." -ForegroundColor Cyan
 
 # Launch server in background

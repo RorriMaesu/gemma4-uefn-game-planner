@@ -441,16 +441,30 @@ def try_start_ollama():
         print("[System] Ollama service is already running.")
     except Exception:
         print("[System] Ollama service not responding. Attempting to auto-launch Ollama application...")
-        # Resolve the standard user path for the Ollama Windows tray app
-        ollama_app_path = os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama\ollama app.exe")
-        if os.path.exists(ollama_app_path):
-            try:
-                subprocess.Popen([ollama_app_path])
-                print("[System] Ollama application launched successfully.")
-            except Exception as e:
-                print(f"[Warning] Failed to start Ollama application: {e}")
-        else:
-            print("[Warning] Ollama installation not found at default location. Please ensure Ollama is running manually.")
+        # Array of common Windows 11 installation locations for Ollama app or daemon
+        candidate_paths = [
+            os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama\ollama app.exe"),
+            os.path.expandvars(r"%PROGRAMFILES%\Ollama\ollama app.exe"),
+            os.path.expandvars(r"%SystemDrive%\Users\%USERNAME%\AppData\Local\Programs\Ollama\ollama app.exe"),
+            r"C:\Users\Tesla\AppData\Local\Programs\Ollama\ollama app.exe",
+            os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama\ollama.exe"),
+            os.path.expandvars(r"%PROGRAMFILES%\Ollama\ollama.exe"),
+            r"C:\Program Files\Ollama\ollama.exe"
+        ]
+        
+        launched = False
+        for path in candidate_paths:
+            if os.path.exists(path):
+                try:
+                    subprocess.Popen([path])
+                    print(f"[System] Ollama application launched successfully from: {path}")
+                    launched = True
+                    break
+                except Exception as e:
+                    print(f"[Warning] Failed to launch Ollama from {path}: {e}")
+        
+        if not launched:
+            print("[Warning] Ollama installation not found at common locations. Please ensure Ollama is running manually.")
 
 if __name__ == "__main__":
     import uvicorn
