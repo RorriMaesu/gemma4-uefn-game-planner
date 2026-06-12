@@ -70,7 +70,9 @@ class LocalLLMClient:
                     "stream": True,
                     "keep_alive": keep_alive,
                     "options": {
-                        "temperature": self.temperature
+                        "temperature": self.temperature,
+                        "num_ctx": 8192,
+                        "num_predict": self.config.get("max_tokens", 4096)
                     }
                 }
                 response = requests.post(url, json=payload, stream=True, timeout=120)
@@ -90,6 +92,7 @@ class LocalLLMClient:
                     "model": self.model,
                     "messages": messages,
                     "temperature": self.temperature,
+                    "max_tokens": self.config.get("max_tokens", 4096),
                     "stream": True
                 }
                 response = requests.post(url, json=payload, headers=headers, stream=True, timeout=120)

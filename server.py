@@ -3,6 +3,7 @@ import sys
 import json
 import threading
 import traceback
+import re
 from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -66,7 +67,147 @@ class PlannerState:
             self.next_focus = ""
             self.user_action_event.clear()
 
+def compact_design_ledger(draft_content: str, output_dir: str) -> str:
+    """
+    Parses the Change Log & Historical Ledger section, saves all entries to a persistent 
+    history file, and returns the draft with a sliding window of the last 3 entries + a 
+    compact summary of older entries.
+    """
+    # Look for the ledger header (case-insensitive, flexible with emojis)
+    ledger_header_regex = re.compile(
+        r"(###?\s*5\.\s*(?:📝\s*)?(?:CHANGE\s+LOG\s*&\s*HISTORICAL\s+LEDGER|Change\s+Log\s*&\s*Historical\s+Ledger).*?)(?=###?|$)",
+        re.IGNORECASE | re.DOTALL
+    )
+    
+    match = ledger_header_regex.search(draft_content)
+    if not match:
+        return draft_content # Return unmodified if header not found
+        
+    header_and_body = match.group(1)
+    start_idx, end_idx = match.span(1)
+    
+    # Extract the header line itself
+    lines = header_and_body.strip().split("\n")
+    header_line = lines[0]
+    body_lines = lines[1:]
+    
+    # Extract individual list items (bullet points)
+    bullet_regex = re.compile(r"^\s*[\-\*\+]\s+(.*)$")
+    entries = []
+    for line in body_lines:
+        line_strip = line.strip()
+        if not line_strip:
+            continue
+        bullet_match = bullet_regex.match(line_strip)
+        if bullet_match:
+            entries.append(bullet_match.group(1))
+        elif entries:
+            # This is a continuation of the previous bullet point
+            entries[-1] += "\n" + line_strip
+            
+    if not entries:
+        return draft_content
+        
+    # Load existing history from disk to merge
+    history_file = os.path.join(output_dir, "design_history.json")
+    all_history = []
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                all_history = json.load(f)
+        except Exception:
+            pass
+            
+    # Merge entries into all_history (avoid duplicates by comparing content)
+    for entry in entries:
+        entry_clean = entry.strip()
+        if entry_clean and entry_clean not in all_history:
+            all_history.append(entry_clean)
+            
+    # Save full history back to disk
+    try:
+        with open(history_file, "w", encoding="utf-8") as f:
+            json.dump(all_history, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[Warning] Failed to save design history ledger: {e}")
+        
+    # Build the compacted ledger for the active prompt
+    if len(all_history) <= 3:
+        # If 3 or fewer entries, keep them all
+        compacted_body = "\n".join([f"- {item}" for item in all_history])
+    else:
+        # Keep the last 3 entries in full detail
+        visible_entries = all_history[-3:]
+        older_entries = all_history[:-3]
+        
+        # Generate a summary string of the older entries
+        cycle_title_regex = re.compile(r"^\s*\*\*(.*?)\*\*")
+        older_summaries = []
+        for item in older_entries:
+            title_match = cycle_title_regex.search(item)
+            if title_match:
+                older_summaries.append(title_match.group(1))
+            else:
+                older_summaries.append(item.split("\n")[0][:40] + "...")
+                
+        summary_text = ", ".join(older_summaries)
+        compacted_body = (
+            f"- **Prior Cycles (Archived Externally)**: Compacted changes for: {summary_text}. (Full historical audits are persisted in design_history.json).\n" +
+            "\n".join([f"- {item}" for item in visible_entries])
+        )
+        
+    # Replace the ledger in the draft
+    new_ledger_section = f"{header_line}\n{compacted_body}\n"
+    new_draft = draft_content[:start_idx] + new_ledger_section + draft_content[end_idx:]
+    return new_draft
+
+def save_session_state_to_disk(state: PlannerState, output_dir: str):
+    """
+    Serializes the current PlannerState (except threads/client references) 
+    to disk for recovery and memory offloading.
+    """
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        state_data = {
+            "phase": state.phase,
+            "concept": state.concept,
+            "autopilot": state.autopilot,
+            "session_id": state.session_id,
+            "architect_content": state.architect_content,
+            "critic_content": state.critic_content,
+            "final_gdd": state.final_gdd,
+            "vram_status": state.vram_status,
+            "logs": state.logs
+        }
+        state_file = os.path.join(output_dir, "session_state.json")
+        with open(state_file, "w", encoding="utf-8") as f:
+            json.dump(state_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[Warning] Failed to save session state: {e}")
+
+def load_session_state_from_disk(state: PlannerState, output_dir: str):
+    """Restores the PlannerState from disk if a saved session exists."""
+    state_file = os.path.join(output_dir, "session_state.json")
+    if os.path.exists(state_file):
+        try:
+            with open(state_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            with state.lock:
+                state.phase = data.get("phase", "idle")
+                state.concept = data.get("concept", "")
+                state.autopilot = data.get("autopilot", True)
+                state.session_id = data.get("session_id", 0)
+                state.architect_content = data.get("architect_content", "")
+                state.critic_content = data.get("critic_content", "")
+                state.final_gdd = data.get("final_gdd", "")
+                state.vram_status = data.get("vram_status", "Unloaded")
+                state.logs = data.get("logs", [])
+            print(f"[System] Restored previous session state for concept: '{state.concept}'")
+        except Exception as e:
+            print(f"[Warning] Failed to restore session state: {e}")
+
 global_state = PlannerState()
+load_session_state_from_disk(global_state, "output")
 
 # Request schemas
 class StartRequest(BaseModel):
@@ -205,6 +346,7 @@ def run_orchestration_loop(state: PlannerState, output_dir: str):
         with open(os.path.join(output_dir, "baseline_draft.md"), "w", encoding="utf-8") as f:
             f.write(current_draft)
         state.log("[System] Baseline Game Design Draft compiled and saved.")
+        save_session_state_to_disk(state, output_dir)
 
         # ==========================================
         # INTERACTIVE REFINEMENT LOOP
@@ -268,9 +410,12 @@ def run_orchestration_loop(state: PlannerState, output_dir: str):
                 check_abort()
                 state.architect_content += chunk
             updated_draft = state.architect_content
-            current_draft = updated_draft
             with open(os.path.join(output_dir, f"refinement_cycle_{iteration}_architect.md"), "w", encoding="utf-8") as f:
                 f.write(updated_draft)
+            
+            # Compact the ledger in the active draft to prune context size, and save state
+            current_draft = compact_design_ledger(updated_draft, output_dir)
+            save_session_state_to_disk(state, output_dir)
 
             state.log(f"[System] Refinement Cycle {iteration} Complete.")
             iteration += 1
@@ -332,6 +477,7 @@ def run_orchestration_loop(state: PlannerState, output_dir: str):
         state.client.unload_model()
         state.vram_status = "Unloaded"
         state.log("[System] Design process completed successfully.")
+        save_session_state_to_disk(state, output_dir)
 
     except InterruptedError:
         print(f"[System] Thread for session {local_session_id} aborted cleanly.")
@@ -342,6 +488,7 @@ def run_orchestration_loop(state: PlannerState, output_dir: str):
             state.vram_status = "Unloaded"
             state.log(f"[Error] Execution thread failed: {e}")
             state.log(traceback.format_exc())
+            save_session_state_to_disk(state, output_dir)
 
 # API Endpoints
 @app.post("/api/start")
@@ -427,6 +574,8 @@ def force_unload():
         global_state.log("[System] Model unloaded manually from dashboard.")
         return {"status": "ok"}
     raise HTTPException(status_code=400, detail="LLM Client not initialized")
+
+
 
 # Serve UI static files
 app.mount("/", StaticFiles(directory="docs", html=True), name="static")
