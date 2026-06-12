@@ -216,10 +216,41 @@ function startStatusPolling() {
         fetch(`${API_BASE}/api/status`)
         .then(res => res.json())
         .then(status => {
+            // Remove offline warning if present
+            const warning = document.getElementById("launcher-offline-warning");
+            if (warning) warning.remove();
+            const launcherCard = document.getElementById("launcher-card");
+            if (launcherCard) {
+                launcherCard.style.border = "1px solid rgba(59, 130, 246, 0.3)";
+                launcherCard.style.background = "rgba(59, 130, 246, 0.05)";
+            }
             updateUI(status);
         })
         .catch(err => {
             console.error("Error polling state status: ", err);
+            
+            // Show dynamic offline warning on launcher card
+            const launcherCard = document.getElementById("launcher-card");
+            if (launcherCard) {
+                launcherCard.style.border = "2px solid rgba(239, 68, 68, 0.6)";
+                launcherCard.style.background = "rgba(239, 68, 68, 0.08)";
+                let warning = document.getElementById("launcher-offline-warning");
+                if (!warning) {
+                    warning = document.createElement("div");
+                    warning.id = "launcher-offline-warning";
+                    warning.style.color = "var(--accent-red)";
+                    warning.style.fontWeight = "600";
+                    warning.style.marginBottom = "12px";
+                    warning.style.fontSize = "0.95rem";
+                    warning.style.padding = "8px 12px";
+                    warning.style.borderRadius = "6px";
+                    warning.style.background = "rgba(239, 68, 68, 0.15)";
+                    warning.style.border = "1px solid rgba(239, 68, 68, 0.2)";
+                    warning.innerHTML = "⚠️ Local backend server is offline. Please extract the downloaded ZIP and run <code>launcher.bat</code> to initialize the app and register auto-launch.";
+                    launcherCard.insertBefore(warning, launcherCard.firstChild);
+                }
+            }
+
             // Auto-launch the local setup tool if the local server is offline
             if (!hasAttemptedAutoLaunch && !sessionStorage.getItem("autoLaunched")) {
                 hasAttemptedAutoLaunch = true;
