@@ -1,6 +1,6 @@
 # Gemma 4 UEFN Game Design Planner
 
-A premium agentic web dashboard and local orchestration planner powered by the local **Gemma 4 12B** model (via Ollama). This tool guides a **Lead Game Architect** and a **Psychological Critic** to collaborate over 4 design pillars to plan high-retention, high-engagement Fortnite UEFN games.
+A premium agentic web dashboard and local orchestration planner powered by the local **Gemma 4 12B** model (via Ollama). This tool guides a **Lead Game Architect** and a **Psychological Critic** to collaborate over 4 design pillars to plan high-retention, high-engagement Fortnite **UEFN (Unreal Editor for Fortnite)** games.
 
 ---
 
@@ -12,7 +12,7 @@ A premium agentic web dashboard and local orchestration planner powered by the l
          ▼
  ┌───────────────┐
  │ Baseline Gen  │ ───► Phase 1: Core Pitch & UEFN Device Mapping
- └───────────────┘ ───► Phase 2: Verse Logic Architecture
+ └───────────────┘ ───► Phase 2: Verse Programming Logic Architecture
          │         ───► Phase 3: Economy Balancing & Hard Math
          ▼
  ┌───────────────┐
@@ -35,27 +35,27 @@ A premium agentic web dashboard and local orchestration planner powered by the l
 ## 🌟 Key Features
 
 * **Multi-Phase Deep Dive Pipeline**:
-  - **Phase 1: Core Pitch & Device Mapping**: Maps tycoon, extraction, or PvP mechanics directly to concrete UEFN devices.
-  - **Phase 2: Verse Logic Architecture**: Designs robust, persistence-enabled Verse structures and state machines.
-  - **Phase 3: Economy balancing & Hard Math**: Formulates decay rates, multiplier caps, and progression curves.
-  - **Phase 4: Dopamine & Retention Audit**: Performs psychological risk, spawn-camping, and Epic Games rule compliance audits.
-* **Autonomous Autopilot Mode**: Loops critique-design refinement cycles continuously without requiring user input for each round.
+  - **Phase 1: Core Pitch & Device Mapping**: Maps tycoon, extraction, or Player-vs-Player (PvP) mechanics directly to concrete Unreal Editor for Fortnite (UEFN) devices.
+  - **Phase 2: Verse Logic Architecture**: Designs robust, persistence-enabled Verse programming language structures and state machines.
+  - **Phase 3: Economy balancing & Hard Math**: Formulates progression curves, multipliers, and math formulas.
+  - **Phase 4: Dopamine & Retention Audit**: Performs audits for psychological player risk, spawn-camping issues, and Epic Games creator rule compliance.
+* **Autonomous Autopilot Mode**: Loops critique-design refinement cycles continuously without requiring manual user approval for each round.
 * **Live Token-by-Token Streaming**: Streams Architect designs and Critic audits dynamically into side-by-side workspace tabs.
-* **LaTeX Formula Typesetting**: Fully renders mathematical curves and volatility formulas beautifully using the **KaTeX** math typesetting engine.
-* **Design Change Log & Historical Ledger**: Tracks all proposed, rejected, and implemented mechanics across iterations, preventing repetitive model suggestions.
-* **Thread Session Safety & Abort Controls**: Prevents orphan background threads using Session IDs, and includes a one-click **Abort / Reset** button to interrupt hanging generations instantly.
-* **GPU VRAM Optimization**: Intelligently unloads the model from graphics memory during idle wait states using Ollama `keep_alive` configurations.
+* **LaTeX Formula Typesetting**: Renders mathematical curves and volatility formulas beautifully in the browser using the **KaTeX** math typesetting engine.
+* **Design Change Log & Historical Ledger**: Tracks all proposed, rejected, and implemented mechanics across iterations to prevent the AI from repeating the same suggestions.
+* **Thread Session Safety & Abort Controls**: Prevents orphan background processing threads using session identifiers, and includes a one-click **Abort / Reset** button to stop hanging generations instantly.
+* **VRAM (Video Memory) Optimization**: Intelligently unloads the model from the graphics card's Video Random Access Memory (VRAM) during idle wait states to free up computer resources.
 
 ---
 
 ## 🌐 Hybrid GitHub Pages + Local Architecture
 
-This project is configured with a hybrid hosting architecture. The frontend dashboard is hosted serverless on **GitHub Pages**, while the backend orchestration engine runs locally on your machine to access high-performance GPU hardware (Ollama + Gemma 4 model) and write output documents directly.
+This project is configured with a hybrid hosting architecture. The frontend web interface (the dashboard) is hosted serverless on **GitHub Pages**, while the backend orchestration engine runs locally on your machine to access your graphics card (GPU) and write output documents directly.
 
 ### How it Works:
-1. **Frontend Hosting**: The `docs/` folder contains the unified static UI files which are served via GitHub Pages.
-2. **Dynamic Cross-Origin Requests**: The frontend detects if it's running remotely. If not on `localhost`, it automatically roots all API calls to `http://127.0.0.1:8000` (CORS-enabled backend).
-3. **Local Backend Engine**: The `server.py` FastAPI runner hosts the pipeline and coordinates the LLM client, keeping generations and markdown output files local.
+1. **Frontend Hosting**: The `docs/` folder contains the unified static User Interface (UI) files which are served via GitHub Pages.
+2. **Dynamic Cross-Origin Requests**: The frontend detects if it's running remotely. If it is hosted on GitHub Pages, it automatically routes all backend calls to your local machine at `http://127.0.0.1:8000` using **CORS (Cross-Origin Resource Sharing)**.
+3. **Local Backend Engine**: The `server.py` server runner hosts the pipeline and coordinates the local Large Language Model (LLM) client, keeping your generations and markdown output files local.
 
 ---
 
@@ -63,7 +63,7 @@ This project is configured with a hybrid hosting architecture. The frontend dash
 
 1. Install Python 3.10 or higher.
 2. Install [Ollama](https://ollama.com).
-3. Pull the target model in your terminal:
+3. Download the target model in your command terminal:
    ```bash
    ollama pull gemma4:latest
    ```
@@ -98,7 +98,7 @@ This project is configured with a hybrid hosting architecture. The frontend dash
 ### ⚡ Option A: Auto-Launcher (Recommended)
 Double-click the **`autolaunch.bat`** script in the project root directory. This script will:
 - Spin up the local FastAPI background server.
-- Wait for it to boot.
+- Wait for it to start.
 - Open the hosted web interface on GitHub Pages (`https://RorriMaesu.github.io/gemma4-uefn-game-planner/`) automatically.
 
 ### 🛠️ Option B: Manual Startup
@@ -122,3 +122,24 @@ python -m unittest test_server.py
 # Run client pipeline mock tests
 python -m unittest test_planner.py
 ```
+
+---
+
+## 📖 Glossary of Terms & Abbreviations
+
+To help you understand the terms used in this project, here is a quick reference guide:
+
+| Abbreviation / Term | Full Name | Description |
+| :--- | :--- | :--- |
+| **UEFN** | Unreal Editor for Fortnite | A tool used to design and publish custom games inside Fortnite. |
+| **Verse** | Verse Programming Language | Epic Games' programming language used to write custom gameplay logic in UEFN. |
+| **GDD** | Game Design Document | A blueprint document detailing the mechanics, design, and loop of a video game. |
+| **LLM** | Large Language Model | A type of artificial intelligence (like Gemma 4) trained to understand and generate text. |
+| **VRAM** | Video Random Access Memory | Specialized high-speed computer memory used by graphics cards to run heavy models. |
+| **GPU** | Graphics Processing Unit | The graphics card hardware in your computer that handles parallel math processing. |
+| **CORS** | Cross-Origin Resource Sharing | A security mechanism that allows web pages to request resources from a different domain/port (like GitHub Pages talking to localhost). |
+| **FastAPI** | FastAPI | A modern, fast web framework for building Application Programming Interfaces (APIs) in Python. |
+| **KaTeX** | KaTeX | A fast JavaScript library that displays mathematical formulas beautifully on web pages. |
+| **LaTeX** | LaTeX | A typesetting system used for writing scientific documents and mathematical formulas. |
+| **UI** | User Interface | The visual elements (buttons, text fields, tabs) that a person interacts with on a website. |
+| **API** | Application Programming Interface | A software intermediary that allows two applications (like the web front-end and Python back-end) to talk to each other. |
