@@ -45,10 +45,15 @@ if (-not $OllamaPath) {
     # Check common install locations dynamically
     $CommonPaths = @(
         "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe",
+        "$env:LOCALAPPDATA\Programs\Ollama\ollama app.exe",
         "$env:PROGRAMFILES\Ollama\ollama.exe",
+        "$env:PROGRAMFILES\Ollama\ollama app.exe",
         "$env:SystemDrive\Users\$env:USERNAME\AppData\Local\Programs\Ollama\ollama.exe",
+        "$env:SystemDrive\Users\$env:USERNAME\AppData\Local\Programs\Ollama\ollama app.exe",
         "C:\Users\Tesla\AppData\Local\Programs\Ollama\ollama.exe",
-        "C:\Program Files\Ollama\ollama.exe"
+        "C:\Users\Tesla\AppData\Local\Programs\Ollama\ollama app.exe",
+        "C:\Program Files\Ollama\ollama.exe",
+        "C:\Program Files\Ollama\ollama app.exe"
     )
     foreach ($Path in $CommonPaths) {
         if (Test-Path $Path) {
@@ -145,8 +150,37 @@ if (Test-Path $RequirementsFile) {
 # 5. Pull Gemma Model
 Write-Host ""
 Write-Host "[5/6] Pre-fetching Gemma model weights..." -ForegroundColor Green
-Write-Host "Running 'ollama pull gemma4:latest' in the background..." -ForegroundColor Yellow
-Start-Process -FilePath "ollama" -ArgumentList "pull gemma4:latest" -NoNewWindow -Wait
+
+# Resolve absolute paths to Ollama CLI and GUI App
+$OllamaCliPath = "ollama" # fallback
+$OllamaAppPath = "ollama" # fallback
+if ($OllamaPath) {
+    $OllamaDir = Split-Path $OllamaPath
+    $CandidateCli = Join-Path $OllamaDir "ollama.exe"
+    if (Test-Path $CandidateCli) {
+        $OllamaCliPath = $CandidateCli
+    }
+    $CandidateApp = Join-Path $OllamaDir "ollama app.exe"
+    if (Test-Path $CandidateApp) {
+        $OllamaAppPath = $CandidateApp
+    } else {
+        $OllamaAppPath = $OllamaPath
+    }
+}
+
+# Ensure Ollama server is running before pulling the model
+Write-Host "Ensuring Ollama server is active..." -ForegroundColor Yellow
+try {
+    $Request = Invoke-WebRequest -Uri "http://127.0.0.1:11434" -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
+    Write-Host "Ollama service is responding." -ForegroundColor Green
+} catch {
+    Write-Host "Ollama service not running. Auto-launching Ollama application..." -ForegroundColor Yellow
+    Start-Process -FilePath $OllamaAppPath
+    Start-Sleep -Seconds 4
+}
+
+Write-Host "Running '$OllamaCliPath pull gemma4:latest' in the background..." -ForegroundColor Yellow
+Start-Process -FilePath $OllamaCliPath -ArgumentList "pull gemma4:latest" -NoNewWindow -Wait
 Write-Host "Model verification completed." -ForegroundColor Green
 
 # 6. Start Application Server

@@ -456,7 +456,8 @@ def try_start_ollama():
         for path in candidate_paths:
             if os.path.exists(path):
                 try:
-                    subprocess.Popen([path])
+                    # os.startfile behaves exactly like double-clicking the file in explorer
+                    os.startfile(path)
                     print(f"[System] Ollama application launched successfully from: {path}")
                     launched = True
                     break
