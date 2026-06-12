@@ -252,9 +252,8 @@ function startStatusPolling() {
             }
 
             // Auto-launch the local setup tool if the local server is offline
-            if (!hasAttemptedAutoLaunch && !sessionStorage.getItem("autoLaunched")) {
+            if (!hasAttemptedAutoLaunch) {
                 hasAttemptedAutoLaunch = true;
-                sessionStorage.setItem("autoLaunched", "true");
                 console.log("[System] Local server offline. Triggering custom protocol launcher...");
                 window.location.href = "ollama-planner://launch";
             }
