@@ -1,0 +1,7 @@
+{
+  "api_type": "ollama",
+  "api_url": "http://localhost:11434",
+  "model_name": "gemma4:latest",
+  "temperature": 0.3,
+  "max_tokens": 4096
+}

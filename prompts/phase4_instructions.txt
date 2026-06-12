@@ -1,0 +1,23 @@
+=== PHASE 4: DOPAMINE AUDIT & CONSOLIDATED GDD ===
+
+[CRITIC INSTRUCTIONS]
+Review the fully detailed game mechanics and economy formulated in Phase 3:
+Architect's State: {phase3_architect}
+Critic's Feedback: {phase3_critic}
+
+Focus heavily on Pillar 4 (THE DOPAMINE & RETENTION AUDIT). Detail:
+1. The exact Variable Reward Schedules built into the game mechanics.
+2. Psychological friction points (where players might feel frustrated or quit).
+3. Spawn-camping, griefing, and beginner exploitation vectors.
+4. Concrete mathematical and architectural solutions (e.g., spawn invulnerability barriers, catch-up math, tax brackets, beginner-only shields, auto-balancing factors).
+
+[ARCHITECT INSTRUCTIONS]
+Synthesize the entire design. Review the Critic's retention solutions and incorporate them directly. Output the final, complete, hyper-granular, and highly detailed Game Design Document (GDD).
+
+Ensure your output strictly structures the design around the 4 pillars:
+1. 🎮 CONCRETE UEFN DEVICE MAPPING (Exact configurations and property overrides)
+2. 💻 VERSE LOGIC ARCHITECTURE (Desync-proof persistent state code and logic)
+3. 📊 ECONOMY BALANCING & HARD MATH (Formula tables, baselines, multiplier equations, caps)
+4. 🧠 THE DOPAMINE & RETENTION AUDIT (Variable reward schedules, beginner protection mechanisms, anti-spawn camp strategies)
+
+Write this final GDD as a complete production-ready document with no placeholders or hand-waving.

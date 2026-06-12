@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma 4 12B - Game Design Planner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background glow spheres -->
+    <div class="glow-sphere sphere-1"></div>
+    <div class="glow-sphere sphere-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <span class="pulse-ring"></span>
+                <h1>Gemma 4 12B</h1>
+                <span class="badge">Agentic Game Planner</span>
+            </div>
+            <div class="vram-panel card">
+                <div class="autopilot-status" style="margin-right: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span class="status-label">Autopilot:</span>
+                    <span id="autopilot-badge" class="status-badge state-active">Active</span>
+                </div>
+                <button id="btn-toggle-autopilot" class="btn btn-secondary btn-sm" style="margin-right: 15px;" title="Pause continuous auto-refinements">Pause Autopilot</button>
+
+                <div class="vram-status">
+                    <span class="status-label">GPU VRAM:</span>
+                    <span id="vram-badge" class="status-badge state-unloaded">Unloaded</span>
+                </div>
+                <button id="btn-unload-vram" class="btn btn-secondary btn-sm" title="Manually free graphics card memory">Unload VRAM</button>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="grid-layout">
+            <!-- Left Panel: Controls & Inputs -->
+            <section class="left-section">
+                <!-- Concept Form -->
+                <div class="card panel-card" id="concept-card">
+                    <h2>Core Game Concept</h2>
+                    <p class="card-desc">Type your high-level game idea. The agentic architect and critic will run a multi-phase deep-dive to design the systems.</p>
+                    <div class="form-group">
+                        <textarea id="game-concept" placeholder="Example: A cyberpunk heist game in UEFN where players hack vaults using Verse and spend credits on persistable upgrades..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button id="btn-start" class="btn btn-primary" style="flex: 1;">Generate Baseline Plan</button>
+                        <button id="btn-abort" class="btn btn-secondary" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); display: none;" title="Abort active generation loop and reset app state">Abort / Reset</button>
+                    </div>
+                </div>
+
+                <!-- Addictive Brainstorm Presets -->
+                <div class="card panel-card" id="brainstorm-card">
+                    <h2>Brainstorming Presets</h2>
+                    <p class="card-desc">Click any of these high-retention mechanics to insert it as a refinement focus for the next iteration loop.</p>
+                    <div class="preset-buttons">
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Integrate a high-risk 'Quantum Extraction Vault' in the center where player gold multiplies over time, but they drop all pocket gold if eliminated before banking.">💰 Extraction Vault</button>
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Add a central 'Chaos Button' that triggers random map-wide disasters (e.g. Gravity Inversion, Meteor Showers) with presser-immunity, creating a risk/reward balance.">🚨 Chaos Button</button>
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Implement a base raiding heist system with outer shields, gate collectors that can be physically siphoned by rivals, and EMP grenades.">🛸 Base Raids & Heists</button>
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Create a volatile stock market terminal in the base where players can trade materials that fluctuate in value based on central events.">📈 Volatile Market</button>
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Implement Verse persistent stats to save Lifetime Account XP, Rebirth prestige, and equipable custom passive perk decks.">💾 Persistent Perk Decks</button>
+                        <button class="btn btn-secondary btn-sm preset-btn" data-preset="Add an 'Overclocked AFK Lounge' and a V-Bucks pass for premium cosmetic items to boost session playtime and revenue.">🕺 Monetization & AFK</button>
+                    </div>
+                </div>
+
+                <!-- Pipeline Progress Timeline -->
+                <div class="card panel-card" id="timeline-card">
+                    <h2>Pipeline Progress</h2>
+                    <ul class="timeline">
+                        <li class="timeline-step" id="step-phase1">
+                            <span class="step-icon">1</span>
+                            <div class="step-info">
+                                <h3>Phase 1: Concept & Devices</h3>
+                                <p>Pitch & UEFN mappings</p>
+                            </div>
+                        </li>
+                        <li class="timeline-step" id="step-phase2">
+                            <span class="step-icon">2</span>
+                            <div class="step-info">
+                                <h3>Phase 2: Verse & State</h3>
+                                <p>Logic and persistent structs</p>
+                            </div>
+                        </li>
+                        <li class="timeline-step" id="step-phase3">
+                            <span class="step-icon">3</span>
+                            <div class="step-info">
+                                <h3>Phase 3: Economy Math</h3>
+                                <p>Multipliers, tick rates, and curves</p>
+                            </div>
+                        </li>
+                        <li class="timeline-step" id="step-refine">
+                            <span class="step-icon">🔄</span>
+                            <div class="step-info">
+                                <h3>Refinement Loops</h3>
+                                <p>Continuous critique cycles</p>
+                            </div>
+                        </li>
+                        <li class="timeline-step" id="step-phase4">
+                            <span class="step-icon">4</span>
+                            <div class="step-info">
+                                <h3>Phase 4: Retention Audit</h3>
+                                <p>Dopamine & anti-griefing final GDD</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Right Panel: Workspace Tabs & Refinements -->
+            <section class="right-section">
+                <div class="card workspace-card">
+                    <div class="tab-headers">
+                        <button class="tab-btn active" data-tab="tab-architect">🎮 Architect Design</button>
+                        <button class="tab-btn" data-tab="tab-critic">🧠 Critic Audit</button>
+                        <button class="tab-btn" data-tab="tab-gdd" id="tab-gdd-btn" style="display: none;">📄 Compiled GDD</button>
+                    </div>
+
+                    <div class="tab-contents">
+                        <!-- Architect Tab -->
+                        <div class="tab-pane active" id="tab-architect">
+                            <div class="tab-pane-header">
+                                <span class="badge-blue">Game Architect Output</span>
+                                <button class="btn btn-secondary btn-sm copy-btn" data-target="architect-viewer">Copy Code</button>
+                            </div>
+                            <div id="architect-viewer" class="markdown-body">
+                                <div class="empty-state">
+                                    <p>Start a new baseline generation to view results.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Critic Tab -->
+                        <div class="tab-pane" id="tab-critic">
+                            <div class="tab-pane-header">
+                                <span class="badge-purple">Psychological Critic Audit</span>
+                                <button class="btn btn-secondary btn-sm copy-btn" data-target="critic-viewer">Copy Code</button>
+                            </div>
+                            <div id="critic-viewer" class="markdown-body">
+                                <div class="empty-state">
+                                    <p>Critic reviews will appear side-by-side with architectural plans.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compiled GDD Tab -->
+                        <div class="tab-pane" id="tab-gdd">
+                            <div class="tab-pane-header">
+                                <span class="badge-green">Final Game Design Document</span>
+                                <button class="btn btn-primary btn-sm" id="btn-download-gdd">Download GDD (.md)</button>
+                            </div>
+                            <div id="gdd-viewer" class="markdown-body"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refinement Controller Drawer -->
+                <div class="card refinement-card" id="refinement-panel" style="display: none;">
+                    <div class="refinement-header">
+                        <h2>🔄 Iteration Controls</h2>
+                        <span class="badge badge-glow animate-pulse">Action Required</span>
+                    </div>
+                    <p class="refinement-desc">Review the baseline or current draft tabs above. Enter focus guidelines to refine the design, or click Finalize to compile the complete game design document.</p>
+                    <div class="form-group">
+                        <textarea id="refinement-focus" placeholder="Focus area (e.g., 'Make beginner shields stronger', 'Audit the Vault tick multiplier formulas for inflation risks')"></textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button id="btn-refine" class="btn btn-secondary">Submit Refinement Round</button>
+                        <button id="btn-finalize" class="btn btn-success">Finalize & Compile GDD</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Logging Terminal -->
+        <footer class="terminal-drawer" id="terminal-drawer">
+            <div class="terminal-header" id="terminal-header">
+                <div class="terminal-title">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span>Execution Console Log</span>
+                </div>
+                <button id="btn-toggle-terminal" class="btn-toggle">▲</button>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <div id="console-logs" class="logs-container">
+                    <span class="log-line system">[System] Waiting for concept initiation...</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

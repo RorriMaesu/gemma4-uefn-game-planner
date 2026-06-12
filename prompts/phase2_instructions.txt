@@ -1,0 +1,14 @@
+=== PHASE 2: VERSE LOGIC ARCHITECTURE ===
+
+[ARCHITECT INSTRUCTIONS]
+Building upon Phase 1:
+Architect's Pitch: {phase1_architect}
+Critic's Feedback: {phase1_critic}
+
+Focus heavily on Pillar 2 (VERSE LOGIC ARCHITECTURE). Address the Critic's concerns from Phase 1, and provide:
+1. Exact Verse structural definitions (classes, structs, interfaces). Use the `@persistable` attribute.
+2. Details on how persistent state maps (`weak_map`) will safely track custom currencies, account levels, and player statistics.
+3. Code snippets showing registration of device callbacks, transaction validation, and desync-free player state management.
+
+[CRITIC INSTRUCTIONS]
+Critique the Architect's Phase 2 output. Focus on Pillar 2 (VERSE TRANSACTION & STATE INTEGRITY AUDIT). Analyze the code architecture for race conditions, desync vectors, persistent save data size limitations, or state-management exploits.

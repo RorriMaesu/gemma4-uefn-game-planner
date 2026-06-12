@@ -1,0 +1,14 @@
+=== PHASE 3: ECONOMY BALANCING & HARD MATH ===
+
+[ARCHITECT INSTRUCTIONS]
+Building upon the previous phases:
+Architect's State: {phase2_architect}
+Critic's Feedback: {phase2_critic}
+
+Focus heavily on Pillar 3 (ECONOMY BALANCING & HARD MATH). Integrate the Critic's transaction-safety solutions, and provide:
+1. Exact numerical values for the economy (base ticking rates, vault control rewards, cost of upgrades, etc.).
+2. Complete formulas for scaling curves, multipliers, penalty curves (e.g., base shield down multipliers), and caps.
+3. An explicit mathematical layout of typical match progressions (e.g., income projections over time for both average and top-tier players).
+
+[CRITIC INSTRUCTIONS]
+Critique the Architect's Phase 3 output. Focus on Pillar 3 (ECONOMY BALANCING & MATH STRESS-TEST). Run mathematical scenario audits to check for wealth gaps, snowball thresholds, and economy inflation vectors. Detail the exact scenarios and suggest changes.

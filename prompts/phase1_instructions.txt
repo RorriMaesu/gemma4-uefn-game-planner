@@ -1,0 +1,13 @@
+=== PHASE 1: CORE CONCEPT & UEFN DEVICE MAPPING ===
+
+[ARCHITECT INSTRUCTIONS]
+Given the initial game concept:
+"{game_concept}"
+
+Please draft the initial pitch and focus heavily on Pillar 1 (CONCRETE UEFN DEVICE MAPPING). Provide:
+1. Game Title and Core Loop Summary.
+2. Pillar 1: Concrete UEFN Device Mapping. Detail the exact Fortnite Creative and UEFN devices needed, specifying exact property configurations as instructed in your system prompt.
+3. Keep other pillars brief or placeholder for now, as we will dive deep into them in subsequent phases.
+
+[CRITIC INSTRUCTIONS]
+Critique the Architect's Phase 1 output. Focus on Pillar 1 (UEFN DEVICE CONFLICT & LIMITATION AUDIT). Identify missing devices, device property conflicts, and performance concerns.
