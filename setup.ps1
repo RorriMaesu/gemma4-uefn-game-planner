@@ -1,5 +1,6 @@
-# Game Design Planner - Bootstrapper Installer & Launcher
-# This script ensures Python, Ollama, required libraries, and the Gemma model are installed.
+param (
+    [switch]$NoBrowser
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -29,8 +30,8 @@ try {
         New-Item -Path $CommandPath -Force | Out-Null
     }
     $ScriptPath = Join-Path $PSScriptRoot "setup.ps1"
-    # Execute PowerShell script completely hidden and unblock it first to bypass the Windows Internet Security prompt
-    $EscapedCommand = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command `"Unblock-File '$ScriptPath'; & '$ScriptPath'`""
+    # Execute PowerShell script completely hidden, bypass zone security warning, and skip opening a browser tab
+    $EscapedCommand = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command `"`$env:SEE_MASK_NOZONECHECKS=1; Unblock-File '$ScriptPath'; & '$ScriptPath' -NoBrowser`""
     New-ItemProperty -Path $CommandPath -Name "(Default)" -Value $EscapedCommand -PropertyType String -Force | Out-Null
     Write-Host "Registered protocol handler successfully." -ForegroundColor Green
 } catch {
@@ -175,7 +176,8 @@ try {
     Write-Host "Ollama service is responding." -ForegroundColor Green
 } catch {
     Write-Host "Ollama service not running. Auto-launching Ollama application..." -ForegroundColor Yellow
-    Start-Process -FilePath $OllamaAppPath
+    # Force normal window style so the tray app launches visibly
+    Start-Process -FilePath $OllamaAppPath -WindowStyle Normal
     Start-Sleep -Seconds 4
 }
 
@@ -186,7 +188,6 @@ Write-Host "Model verification completed." -ForegroundColor Green
 # 6. Start Application Server
 Write-Host ""
 Write-Host "[6/6] Launching FastAPI local server..." -ForegroundColor Green
-Write-Host "Opening Game Design Planner in your default browser..." -ForegroundColor Cyan
 
 # Launch server in background
 Start-Process -FilePath $PythonExe -ArgumentList "server.py" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden
@@ -194,8 +195,11 @@ Start-Process -FilePath $PythonExe -ArgumentList "server.py" -WorkingDirectory $
 # Wait for server startup
 Start-Sleep -Seconds 3
 
-# Launch GitHub Pages frontend link
-Start-Process "https://RorriMaesu.github.io/gemma4-uefn-game-planner/"
+# Launch GitHub Pages frontend link if not run silently
+if (-not $NoBrowser) {
+    Write-Host "Opening Game Design Planner in your default browser..." -ForegroundColor Cyan
+    Start-Process "https://RorriMaesu.github.io/gemma4-uefn-game-planner/"
+}
 
 Write-Host "All systems operational! You can close this script window." -ForegroundColor Green
 Start-Sleep -Seconds 5
