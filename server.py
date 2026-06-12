@@ -67,15 +67,15 @@ class PlannerState:
             self.next_focus = ""
             self.user_action_event.clear()
 
-def compact_design_ledger(draft_content: str, output_dir: str) -> str:
+def compact_design_ledger(draft_content: str, output_dir: str, state: PlannerState) -> str:
     """
     Parses the Change Log & Historical Ledger section, saves all entries to a persistent 
     history file, and returns the draft with a sliding window of the last 3 entries + a 
     compact summary of older entries.
     """
-    # Look for the ledger header (case-insensitive, flexible with emojis)
+    # Look for the ledger header (case-insensitive, flexible with emojis and naming variations)
     ledger_header_regex = re.compile(
-        r"(###?\s*5\.\s*(?:📝\s*)?(?:CHANGE\s+LOG\s*&\s*HISTORICAL\s+LEDGER|Change\s+Log\s*&\s*Historical\s+Ledger).*?)(?=###?|$)",
+        r"(###?\s*5\.\s*(?:📝\s*)?(?:CHANGE\s+LOG|Change\s+Log|SESSION\s+MEMORY|Session\s+Memory|HISTORICAL\s+LEDGER|Historical\s+Ledger).*?)(?=###?|$)",
         re.IGNORECASE | re.DOTALL
     )
     
@@ -97,6 +97,9 @@ def compact_design_ledger(draft_content: str, output_dir: str) -> str:
     for line in body_lines:
         line_strip = line.strip()
         if not line_strip:
+            continue
+        # Skip subheadings inside the change log
+        if line_strip.startswith("####"):
             continue
         bullet_match = bullet_regex.match(line_strip)
         if bullet_match:
@@ -131,33 +134,83 @@ def compact_design_ledger(draft_content: str, output_dir: str) -> str:
     except Exception as e:
         print(f"[Warning] Failed to save design history ledger: {e}")
         
-    # Build the compacted ledger for the active prompt
-    if len(all_history) <= 3:
-        # If 3 or fewer entries, keep them all
-        compacted_body = "\n".join([f"- {item}" for item in all_history])
-    else:
-        # Keep the last 3 entries in full detail
-        visible_entries = all_history[-3:]
-        older_entries = all_history[:-3]
-        
-        # Generate a summary string of the older entries
-        cycle_title_regex = re.compile(r"^\s*\*\*(.*?)\*\*")
-        older_summaries = []
-        for item in older_entries:
-            title_match = cycle_title_regex.search(item)
-            if title_match:
-                older_summaries.append(title_match.group(1))
-            else:
-                older_summaries.append(item.split("\n")[0][:40] + "...")
+    # Load design memory (consolidated constraints)
+    memory_file = os.path.join(output_dir, "design_memory.json")
+    memory_data = {"implemented": "None", "rejected": "None", "last_consolidated_idx": -1}
+    if os.path.exists(memory_file):
+        try:
+            with open(memory_file, "r", encoding="utf-8") as f:
+                memory_data = json.load(f)
+        except Exception:
+            pass
+            
+    # Compile older logs into Consolidated Constraints
+    target_idx = len(all_history) - 4
+    last_idx = memory_data.get("last_consolidated_idx", -1)
+    
+    if target_idx >= 0 and target_idx > last_idx:
+        # We need to run consolidation using the LLM
+        try:
+            consolidator_system = load_prompt_file("prompts/memory_consolidator.txt")
+        except Exception:
+            consolidator_system = "You are the Systems Architect Memory Compiler..."
+            
+        # Perform incremental consolidation for each entry leaving the window
+        for idx in range(last_idx + 1, target_idx + 1):
+            new_log_entry = all_history[idx]
+            consolidator_prompt = (
+                f"Current Consolidated Constraints:\n"
+                f"- **Implemented Key Mechanics**: {memory_data.get('implemented', 'None')}\n"
+                f"- **Rejected Concepts & Exploit Mitigation**: {memory_data.get('rejected', 'None')}\n\n"
+                f"New Cycle Log Entry to Merge:\n"
+                f"- {new_log_entry}\n"
+            )
+            
+            try:
+                print(f"[System] Consolidating historical design memory: merging log index {idx} in background...")
+                merged_result = state.client.generate(consolidator_system, consolidator_prompt, keep_alive="1m")
                 
-        summary_text = ", ".join(older_summaries)
+                # Parse output matches
+                imp_match = re.search(r"\*\*(?:Implemented\s+Key\s+Mechanics|Implemented)\*\*:\s*(.*)", merged_result, re.IGNORECASE)
+                rej_match = re.search(r"\*\*(?:Rejected\s+Concepts\s*&\s*Exploit\s+Mitigation|Rejected)\*\*:\s*(.*)", merged_result, re.IGNORECASE)
+                
+                if imp_match:
+                    memory_data["implemented"] = imp_match.group(1).strip()
+                if rej_match:
+                    memory_data["rejected"] = rej_match.group(1).strip()
+                memory_data["last_consolidated_idx"] = idx
+            except Exception as e:
+                print(f"[Warning] Failed to consolidate log index {idx} during this run: {e}")
+                break
+                
+        # Save updated memory back to disk
+        try:
+            with open(memory_file, "w", encoding="utf-8") as f:
+                json.dump(memory_data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"[Warning] Failed to save design memory JSON: {e}")
+            
+    # Build the compacted ledger for the active prompt GDD
+    if len(all_history) <= 3:
         compacted_body = (
-            f"- **Prior Cycles (Archived Externally)**: Compacted changes for: {summary_text}. (Full historical audits are persisted in design_history.json).\n" +
-            "\n".join([f"- {item}" for item in visible_entries])
+            "#### A. RECENT REFINE DETAILS\n" +
+            "\n".join([f"- {item}" for item in all_history]) + "\n\n" +
+            "#### B. CONSOLIDATED CONSTRAINTS (Historical Memory)\n" +
+            f"- **Implemented Key Mechanics**: {memory_data.get('implemented', 'None')}\n" +
+            f"- **Rejected Concepts & Exploit Mitigation**: {memory_data.get('rejected', 'None')}"
+        )
+    else:
+        visible_entries = all_history[-3:]
+        compacted_body = (
+            "#### A. RECENT REFINE DETAILS\n" +
+            "\n".join([f"- {item}" for item in visible_entries]) + "\n\n" +
+            "#### B. CONSOLIDATED CONSTRAINTS (Historical Memory)\n" +
+            f"- **Implemented Key Mechanics**: {memory_data.get('implemented', 'None')}\n" +
+            f"- **Rejected Concepts & Exploit Mitigation**: {memory_data.get('rejected', 'None')}"
         )
         
-    # Replace the ledger in the draft
-    new_ledger_section = f"{header_line}\n{compacted_body}\n"
+    # Reassemble and return
+    new_ledger_section = f"### 5. 📝 CHANGE LOG & SESSION MEMORY\n\n{compacted_body}\n"
     new_draft = draft_content[:start_idx] + new_ledger_section + draft_content[end_idx:]
     return new_draft
 
@@ -414,7 +467,7 @@ def run_orchestration_loop(state: PlannerState, output_dir: str):
                 f.write(updated_draft)
             
             # Compact the ledger in the active draft to prune context size, and save state
-            current_draft = compact_design_ledger(updated_draft, output_dir)
+            current_draft = compact_design_ledger(updated_draft, output_dir, state)
             save_session_state_to_disk(state, output_dir)
 
             state.log(f"[System] Refinement Cycle {iteration} Complete.")
