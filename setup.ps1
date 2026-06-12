@@ -30,8 +30,7 @@ try {
         New-Item -Path $CommandPath -Force | Out-Null
     }
     $ScriptPath = Join-Path $PSScriptRoot "setup.ps1"
-    # Execute PowerShell script completely hidden, bypass zone security warning, and skip opening a browser tab
-    $EscapedCommand = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command `"`$env:SEE_MASK_NOZONECHECKS=1; Unblock-File '$ScriptPath'; & '$ScriptPath' -NoBrowser`""
+    $EscapedCommand = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command `"Set-Item env:SEE_MASK_NOZONECHECKS 1; Unblock-File '$ScriptPath'; & '$ScriptPath' -NoBrowser`""
     New-ItemProperty -Path $CommandPath -Name "(Default)" -Value $EscapedCommand -PropertyType String -Force | Out-Null
     Write-Host "Registered protocol handler successfully." -ForegroundColor Green
 } catch {
