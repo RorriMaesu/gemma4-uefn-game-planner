@@ -28,9 +28,9 @@ try {
     if (-not (Test-Path $CommandPath)) {
         New-Item -Path $CommandPath -Force | Out-Null
     }
-    $BatchPath = Join-Path $PSScriptRoot "launcher.bat"
-    # Execute batch file in its own directory
-    $EscapedCommand = "cmd.exe /c cd /d `"$PSScriptRoot`" && launcher.bat"
+    $ScriptPath = Join-Path $PSScriptRoot "setup.ps1"
+    # Execute PowerShell script completely hidden so the user only sees the browser dialog approval
+    $EscapedCommand = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
     New-ItemProperty -Path $CommandPath -Name "(Default)" -Value $EscapedCommand -PropertyType String -Force | Out-Null
     Write-Host "Registered protocol handler successfully." -ForegroundColor Green
 } catch {
