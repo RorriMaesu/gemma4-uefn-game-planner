@@ -2,6 +2,8 @@
 
 A premium agentic web dashboard and local orchestration planner powered by the local **Gemma 4 12B** model (via Ollama). This tool guides a **Lead Game Architect** and a **Psychological Critic** to collaborate over 4 design pillars to plan high-retention, high-engagement Fortnite **UEFN (Unreal Editor for Fortnite)** games.
 
+🎮 **Access the live dashboard on GitHub Pages**: [gemma4-uefn-game-planner Web UI](https://RorriMaesu.github.io/gemma4-uefn-game-planner/)
+
 ---
 
 ## 🚀 Pipeline & Orchestration Flow
